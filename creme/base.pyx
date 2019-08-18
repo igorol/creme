@@ -3,6 +3,9 @@ Base classes used throughout the library.
 """
 import abc
 import typing
+import warnings
+
+from . import __version__
 
 
 __all__ = [
@@ -24,7 +27,7 @@ Proba = float
 Probas = typing.Dict[Label, Proba]
 
 
-class Estimator:
+cdef class Estimator:
 
     def __str__(self):
         return self.__class__.__name__
@@ -124,10 +127,10 @@ class MultiClassifier(BinaryClassifier):
         """
 
 
-class Transformer(Estimator):
+cdef class Transformer(Estimator):
     """A transformer."""
 
-    def fit_one(self, x: dict, y=None) -> 'Transformer':
+    cpdef Transformer fit_one(self, dict x, object y=None):
         """Fits to a set of features ``x`` and an optional target ``y``.
 
         A lot of transformers don't actually have to do anything during the ``fit_one`` step
@@ -145,8 +148,7 @@ class Transformer(Estimator):
         """
         return self
 
-    @abc.abstractmethod
-    def transform_one(self, x: dict) -> dict:
+    cpdef dict transform_one(self, dict x):
         """Transforms a set of features ``x``
 
         Parameters:

@@ -51,6 +51,6 @@ class PearsonCorrelation(base.Bivariate):
     def get(self):
         var_x = self.var_x.get()
         var_y = self.var_y.get()
-        if var_x and var_y:
+        if var_x > 0 and var_y > 0:
             return self.cov_xy.get() / (var_x * var_y) ** 0.5
         return 0

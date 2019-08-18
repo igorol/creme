@@ -1,3 +1,5 @@
+from .. cimport base
+
 import collections
 
 from .. import base
@@ -8,13 +10,13 @@ from .. import utils
 __all__ = ['MinMaxScaler', 'Normalizer', 'StandardScaler']
 
 
-def safe_div(a, b):
+cdef double safe_div(double a, double b):
     if b == 0:
         return a
     return a / b
 
 
-class StandardScaler(base.Transformer):
+cdef class StandardScaler(base.Transformer):
     """Scales the data so that it has zero mean and unit variance.
 
     Under the hood a running mean and a running variance are maintained. The scaling is slightly
@@ -74,19 +76,27 @@ class StandardScaler(base.Transformer):
 
     """
 
-    def __init__(self):
-        self.variances = collections.defaultdict(stats.Var)
+    cdef readonly dict variances
 
-    def fit_one(self, x, y=None):
+    def __init__(self):
+        self.variances = {}
+
+    cpdef StandardScaler fit_one(self, dict x, object y=None):
 
         for i, xi in x.items():
-            self.variances[i].update(xi)
+            if i in self.variances:
+                self.variances[i].update(xi)
+            else:
+                self.variances[i] = stats.Var().update(xi)
 
         return self
 
-    def transform_one(self, x):
+    cdef double _scale(self, double x, double mean, double var):
+        return safe_div(x - mean, var ** 0.5)
+
+    cpdef dict transform_one(self, dict x):
         return {
-            i: safe_div(xi - self.variances[i].mean.get(), self.variances[i].get() ** 0.5)
+            i: self._scale(xi, self.variances[i].mean.get(), self.variances[i].get())
             for i, xi in x.items()
         }
 

@@ -144,27 +144,26 @@ def iter_csv(filepath_or_buffer, target_name, types=None, parse_dates=None):
 
     """
 
-    file = filepath_or_buffer
+    with open(filepath_or_buffer) as file:
 
-    if not hasattr(file, 'read'):
-        file = open(file)
+        for x in csv.DictReader(file):
 
-    for x in csv.DictReader(file):
+            x = dict(x)
 
-        # Cast the values to the given types
-        if types is not None:
-            for i, t in types.items():
-                x[i] = t(x[i])
+            # Cast the values to the given types
+            if types is not None:
+                for i, t in types.items():
+                    x[i] = t(x[i])
 
-        # Parse the dates
-        if parse_dates is not None:
-            for i, fmt in parse_dates.items():
-                x[i] = dt.datetime.strptime(x[i], fmt)
+            # Parse the dates
+            if parse_dates is not None:
+                for i, fmt in parse_dates.items():
+                    x[i] = dt.datetime.strptime(x[i], fmt)
 
-        # Separate the target from the features
-        y = x.pop(target_name)
+            # Separate the target from the features
+            y = x.pop(target_name)
 
-        yield x, y
+            yield x, y
 
 
 def simulate_qa(X_y, on, lag):
